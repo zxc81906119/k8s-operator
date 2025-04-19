@@ -1,0 +1,7 @@
+apiVersion: com.redhat.cleanbase/v1
+kind: ExampleCR
+metadata:
+  namespace: test
+  name: example-cr-1
+spec:
+  image: no-use
