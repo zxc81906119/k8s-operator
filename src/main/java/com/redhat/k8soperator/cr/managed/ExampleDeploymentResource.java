@@ -1,13 +1,10 @@
-package com.redhat.k8soperator.cr.res;
+package com.redhat.k8soperator.cr.managed;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.redhat.k8soperator.cr.ExampleCR;
 import com.redhat.k8soperator.util.BuilderHelper;
-import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
-import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ResourceIDMatcherDiscriminator;
 import io.javaoperatorsdk.operator.processing.dependent.kubernetes.CRUDKubernetesDependentResource;
@@ -15,75 +12,56 @@ import io.javaoperatorsdk.operator.processing.dependent.kubernetes.KubernetesDep
 import io.javaoperatorsdk.operator.processing.event.ResourceID;
 import lombok.val;
 
-import java.util.Map;
-
 @KubernetesDependent(resourceDiscriminator = ExampleDeploymentResource.Discriminator.class)
 public class ExampleDeploymentResource extends CRUDKubernetesDependentResource<Deployment, ExampleCR> {
 
     public static final String PROVIDER_ID = "example-deployment";
+    public static final String META_LABEL_APP = "app";
+
     private final Deployment baseTemplate;
 
     public ExampleDeploymentResource() {
         super(Deployment.class);
-        baseTemplate = BuilderHelper.loadTemplate(new TypeReference<>() {
-        }, "templates/api-server-deployment.yaml");
+        baseTemplate = BuilderHelper.loadTemplate(
+                new TypeReference<>() {
+                },
+                "templates/jenkins-deployment.yaml"
+        );
     }
 
     @Override
     protected Deployment desired(ExampleCR primary, Context<ExampleCR> context) {
         // 根據主資源的 cr 來創建子資源的結果
         // 如果不需要此資源就回傳 null
-
+        // label + name + namespace 已設置
         val meta = BuilderHelper.fromPrimary(primary, PROVIDER_ID)
+                .addToLabels(META_LABEL_APP, PROVIDER_ID)
                 .build();
-
+        // match labels 設置
+        // template meta label 也要設置
         val deploymentBuilder = new DeploymentBuilder(baseTemplate);
+        val spec = primary.getSpec();
+
         return deploymentBuilder
                 .withMetadata(meta)
                 .editOrNewSpec()
+                .withReplicas(spec.getReplicas())
                 .editOrNewSelector()
                 .withMatchLabels(meta.getLabels())
                 .and()
+                // pod
                 .editOrNewTemplate()
                 .editOrNewMetadata()
                 .withLabels(meta.getLabels())
                 .and()
+                .editOrNewSpec()
+                .editContainer(0)
+                .withImage("%s:%s".formatted(spec.getImageRepo(), spec.getImageTag()))
+                .and()
+                .and()
                 .and()
                 .and()
                 .build();
-    }
-
-    private DeploymentSpec buildSpec(ExampleCR primary, ObjectMeta primaryMeta) {
-
-        val deploymentSpecBuilder = new DeploymentSpecBuilder();
-        return deploymentSpecBuilder
-                .withSelector(buildSelector(primaryMeta.getLabels()))
-                .withReplicas(1) // Dependenty track does not support multiple pods (yet)
-//                .withTemplate(buildPodTemplate(primary, primaryMeta))
-                .build();
-    }
-
-    private LabelSelector buildSelector(Map<String, String> labels) {
-        val labelSelectorBuilder = new LabelSelectorBuilder();
-        return labelSelectorBuilder
-                .addToMatchLabels(labels)
-                .build();
-    }
-
-    private PodTemplateSpec buildPodTemplate(ExampleCR primary, ObjectMeta primaryMeta) {
-
-        val podTemplateSpecBuilder = new PodTemplateSpecBuilder();
-        return podTemplateSpecBuilder
-                .withMetadata(primaryMeta)
-                .build();
-    }
-
-    private PodSpec buildPodSpec(ExampleCR primary) {
-
-        //@formatter:off
-        return new PodSpecBuilder(baseTemplate.getSpec().getTemplate().getSpec())
-                .build();
-        //@formatter:on
     }
 
     static class Discriminator extends ResourceIDMatcherDiscriminator<Deployment, ExampleCR> {

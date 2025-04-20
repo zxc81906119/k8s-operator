@@ -1,7 +1,6 @@
-package com.redhat.k8soperator.cr.controller;
+package com.redhat.k8soperator.cr;
 
-import com.redhat.k8soperator.cr.ExampleCR;
-import com.redhat.k8soperator.cr.res.ExampleDeploymentResource;
+import com.redhat.k8soperator.cr.managed.ExampleDeploymentResource;
 import io.javaoperatorsdk.operator.api.reconciler.*;
 import io.javaoperatorsdk.operator.api.reconciler.dependent.Dependent;
 import io.javaoperatorsdk.operator.processing.event.ResourceID;
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Component;
 @ControllerConfiguration(dependents = {
         @Dependent(name = ExampleDeploymentResource.PROVIDER_ID, type = ExampleDeploymentResource.class)
 })
-public class ExampleController implements Reconciler<ExampleCR>, Cleaner<ExampleCR> {
+public class ExampleReconciler implements Reconciler<ExampleCR>, Cleaner<ExampleCR> {
     // 傳入新的 cr 物件
     // 可能會有很多 cr 物件 , 名稱都不同, api version kind name 要一樣才可以說是同一個資源
     @Override

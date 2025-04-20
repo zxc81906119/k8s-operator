@@ -4,4 +4,6 @@ metadata:
   namespace: test
   name: example-cr-1
 spec:
-  image: no-use
+  imageRepo: jenkins/jenkins
+  imageTag: lts
+  replicas: 2

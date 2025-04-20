@@ -1,7 +1,5 @@
 package com.redhat.k8soperator.cr;
 
-import com.redhat.k8soperator.cr.spec.ExampleSpec;
-import com.redhat.k8soperator.cr.status.ExampleStatus;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;

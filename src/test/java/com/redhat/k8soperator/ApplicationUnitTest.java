@@ -5,11 +5,13 @@ import io.javaoperatorsdk.operator.springboot.starter.test.EnableMockOperator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @EnableMockOperator
+@ActiveProfiles("test")
 public class ApplicationUnitTest {
 
     @Autowired
@@ -22,7 +24,7 @@ public class ApplicationUnitTest {
                         .v1()
                         .customResourceDefinitions()
                         .withName("examplecrs.com.redhat.cleanbase")
-                        .get())
-                .isNotNull();
+                        .get()
+        ).isNotNull();
     }
 }

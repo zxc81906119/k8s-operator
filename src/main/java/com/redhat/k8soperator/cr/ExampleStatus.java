@@ -1,4 +1,4 @@
-package com.redhat.k8soperator.cr.status;
+package com.redhat.k8soperator.cr;
 
 import io.javaoperatorsdk.operator.api.ObservedGenerationAwareStatus;
 import lombok.Data;
