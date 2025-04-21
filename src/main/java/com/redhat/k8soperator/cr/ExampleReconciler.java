@@ -8,9 +8,14 @@ import lombok.val;
 import org.springframework.stereotype.Component;
 
 @Component
-@ControllerConfiguration(dependents = {
-        @Dependent(name = ExampleDeploymentResource.PROVIDER_ID, type = ExampleDeploymentResource.class)
-})
+@ControllerConfiguration(
+        dependents = {
+                @Dependent(
+                        name = ExampleDeploymentResource.PROVIDER_ID,
+                        type = ExampleDeploymentResource.class
+                )
+        }
+)
 public class ExampleReconciler implements Reconciler<ExampleCR>, Cleaner<ExampleCR> {
     // 傳入新的 cr 物件
     // 可能會有很多 cr 物件 , 名稱都不同, api version kind name 要一樣才可以說是同一個資源
@@ -34,11 +39,12 @@ public class ExampleReconciler implements Reconciler<ExampleCR>, Cleaner<Example
 
     @Override
     public DeleteControl cleanup(ExampleCR resource, Context<ExampleCR> context) {
-        // 如果子資源子資源類自管
-        // 且刪除工作沒有完全結束,就調用  DeleteControl.noFinalizerRemoval()
-        // 如果知道會需要一些時間,可以再調用 .rescheduleAfter(時間區間)
+        // 如子資源讓子資源類自管且父資源清除工作未結束
+        // 或父資源管理子資源且父或子資源清除工作未結束
+        // 則調用 DeleteControl.noFinalizerRemoval()
+        // 如需一些時間再判斷 , 可再調用 .rescheduleAfter(時間區間)
 
-        // 如果子資源主資源類管,需要等子資源或其他資源都清理乾淨,再進行 defaultDelete
+        // 如清除工作結束 , 則調用 DeleteControl.defaultDelete();
         return DeleteControl.defaultDelete();
     }
 }
